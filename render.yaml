@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: your-bags-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
