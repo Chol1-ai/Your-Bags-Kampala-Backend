@@ -10,6 +10,7 @@ const app = express();
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN;
 const PORT = Number(process.env.PORT) || 3000;
 const MONGO_URI = process.env.MONGO_URI;
+const MAX_UPLOAD_MB = Number(process.env.MAX_UPLOAD_MB) || 10;
 
 app.use(
   cors({
@@ -49,7 +50,7 @@ const storage = multer.diskStorage({
 const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!allowedMimeTypes.has(file.mimetype)) {
       return cb(new Error("Only JPG, PNG, and WEBP images are allowed."));
@@ -148,6 +149,9 @@ app.delete("/api/products/:id", async (req, res) => {
 
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
+    if (error.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ message: `File too large. Max size is ${MAX_UPLOAD_MB}MB.` });
+    }
     return res.status(400).json({ message: error.message });
   }
 
